@@ -58,7 +58,7 @@ class AverageMethod():
         else :
             return np.random.choice(np.flatnonzero(Q==np.max(Q)))
         
-    def update_Q(self,Q,n,R,a):
+    def update_Q(self,Q,n,R):
         return (1-self.alpha)**n*Q + self.alpha*(1-self.alpha)**(n-1)*R
         
     def optimize(self,Q_start):
@@ -77,7 +77,7 @@ class AverageMethod():
                 R += bandits[a].play()
                 hist_R[rep,n] = R
                 hist_Ra[rep,n] = bandits[a].play()
-                Q[a] = self.update_Q(Q[a],n,R,a)
+                Q[a] = self.update_Q(Q[a],n,R)
         return hist_R, hist_Ra, hist_A
 
 
