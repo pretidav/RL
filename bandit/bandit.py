@@ -1,6 +1,8 @@
 import numpy as np
 import random 
 import argparse 
+from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 class GaussianBandit():
     def __init__(self,mu,sigma,name):
@@ -8,12 +10,13 @@ class GaussianBandit():
         self.sigma  = sigma
         self.name   = name
         print("[+] Bandit {}:".format(name))
-        print(" mu:{}\n sigma:{}".format(mu,sigma))
+        print(" mu:{}\n sigma:{}\n".format(mu,sigma))
+
     def __str__(self):
         return self.name
         
     def play(self):
-        return np.random.normal(self.mu,self.sigma,1)
+        return np.random.normal(self.mu,self.sigma)
 
 class GaussianTimeBandit():
     def __init__(self,mu,sigma,k,s,name):
@@ -23,33 +26,67 @@ class GaussianTimeBandit():
         self.s      = s
         self.name   = name
         print("[+] Bandit {}:".format(name))
-        print(" mu:{}\n sigma:{}\n k:{}\n s:{}".format(mu,sigma,k,s))
+        print(" mu:{}\n sigma:{}\n k:{}\n s:{}\n".format(mu,sigma,k,s))
+    
+    def __str__(self):
+        return self.name
+        
     def play(self,t):
-        return np.random.normal(self.mu+t*k,self.sigma*abs(self.s),1)
+        return np.random.normal(self.mu+t*k,self.sigma*abs(self.s))
 
-def eps_greedy(eps):
-    if np.random()<eps:
-        return np.random.choice(A)
-    if np.random()>eps:
-        return np.argmax(Q)
-    elif np.random()==eps:
-        if np.random<0.5:
+class AverageMethod():
+    def __init__(self,eps,alpha,replicas,steps,bandits):
+        self.eps = eps 
+        self.alpha = alpha
+        self.replicas = replicas
+        self.steps = steps
+        self.bandits = bandits
+
+        print('[+] AverageMethod\n Parameters:\n replicas:{}\n steps:{}\n eps:{}\n alpha:{}\n bandits:{}\n'.format(
+        self.replicas,self.steps,self.eps,self.alpha,len(self.bandits)))
+
+    def __str__(self):
+        return 'Parameters:\n replicas:{}\n steps:{}\n eps:{}\n alpha:{}\n bandits:{}\n'.format(
+            self.replicas,self.steps,self.eps,self.alpha,len(self.bandits))
+
+    def create_actions(self,bandits):
+        return [i for i in range(0,len(bandits))]
+
+    def eps_greedy(self,Q,A):
+        if np.random.random()<=self.eps:
             return np.random.choice(A)
         else :
-            return np.argmax(Q)
+            return np.random.choice(np.flatnonzero(Q==np.max(Q)))
+        
+    def update_Q(self,Q,n,R,a):
+        return (1-self.alpha)**n*Q + self.alpha*(1-self.alpha)**(n-1)*R
+        
+    def optimize(self,Q_start):
+        print('[+] Optimization started')
+        Q = np.copy(Q_start)
+        hist_R  = np.zeros(shape=(self.replicas,self.steps))
+        hist_Ra = np.zeros(shape=(self.replicas,self.steps))
+        hist_A = np.zeros(shape=(self.replicas,self.steps,len(Q_start))) 
+        Actions = self.create_actions(self.bandits)
+        for rep in tqdm(range(self.replicas)):
+            R = 0
+            Q = np.copy(Q_start)
+            for n in range(self.steps):
+                a  = self.eps_greedy(Q,Actions)
+                hist_A[rep,n,a] += 1
+                R += bandits[a].play()
+                hist_R[rep,n] = R
+                hist_Ra[rep,n] = bandits[a].play()
+                Q[a] = self.update_Q(Q[a],n,R,a)
+        return hist_R, hist_Ra, hist_A
 
-def create_actions(bandits):
-    return [i for i in range(0,len(bandits))]
-
-def initialize_Q(bandits):
-    return [0 for _ in range(0,len(bandits))]
 
 if __name__=='__main__':
     print('='*20)
     print(' Multi-Armed Bandit ')
     print('='*20)
     
-    np.random.seed(1)    #fix random seed
+    #np.random.seed(1)    #fix random seed
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--replicas', help = "number replicas", default=100)
@@ -57,21 +94,34 @@ if __name__=='__main__':
     parser.add_argument('--eps', help = "epsilon greedy parameter", default=0.1)
     
     args = parser.parse_args()
-    replicas = args.replicas
-    steps    = args.steps
-    eps      = args.eps 
+    replicas = int(args.replicas)
+    steps    = int(args.steps)
+    eps      = float(args.eps) 
 
     bandits = [
-        GaussianBandit(1.0,0.5,'a'),
-        GaussianBandit(2.0,0.5,'b'),
+        GaussianBandit(1.0,0.1,'a'),
+        GaussianBandit(5.0,0.3,'b'),
         GaussianBandit(0.5,2  ,'c'),
-        GaussianBandit(3  ,3  ,'d')
+        GaussianBandit(2  ,3  ,'d'),
+        GaussianBandit(4  ,0.1,'e'),
+        GaussianBandit(3  ,2  ,'f'),
+        GaussianBandit(6  ,0.3,'g'),
+        GaussianBandit(8  ,0.3,'h'),
     ]
+    leg = []
+    for eps in np.arange(0,eps,0.05):
+        method = AverageMethod(
+            eps=eps,
+            alpha=float(1/steps), 
+            replicas=replicas,
+            steps=steps,
+            bandits=bandits)
 
-    for rep in range(replicas):
-        for n in range(steps):
-
-            Actions = create_actions(bandits)
-            Q       = initialize_Q(bandits)
-            print(Actions)
-            print(Q)
+        Q_start = np.array([0.0 for _ in range(0,len(bandits))]) #Optimism
+        R,Ra,A = method.optimize(Q_start)
+        A_mean = np.mean(A,axis=0)
+        print('Optimal action "h": {}%'.format(100*A_mean[-1,-1]))
+        plt.plot(np.mean(Ra,axis=0))
+        leg.append(str(eps))
+    plt.legend(leg)
+    plt.show()
