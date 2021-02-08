@@ -42,7 +42,7 @@ class AverageMethodNotStationary():
         self.steps = steps
         self.bandits = bandits
 
-        print('[+] AverageMethod\n Parameters:\n replicas:{}\n steps:{}\n eps:{}\n alpha:{}\n bandits:{}\n'.format(
+        print('[+] AverageNotStationaryMethod\n Parameters:\n replicas:{}\n steps:{}\n eps:{}\n alpha:{}\n bandits:{}\n'.format(
         self.replicas,self.steps,self.eps,self.alpha,len(self.bandits)))
 
     def __str__(self):
@@ -88,7 +88,7 @@ class AverageMethodStationary():
         self.steps = steps
         self.bandits = bandits
 
-        print('[+] AverageMethod\n Parameters:\n replicas:{}\n steps:{}\n eps:{}\n bandits:{}\n'.format(
+        print('[+] AverageStationaryMethod\n Parameters:\n replicas:{}\n steps:{}\n eps:{}\n bandits:{}\n'.format(
         self.replicas,self.steps,self.eps,len(self.bandits)))
 
     def __str__(self):
@@ -106,10 +106,10 @@ class AverageMethodStationary():
                
     def optimize(self,Q_start):
         print('[+] Optimization started')
-        Q = np.copy(Q_start)
+        Q       = np.copy(Q_start)
         hist_R  = np.zeros(shape=(self.replicas,self.steps))
         hist_Ra = np.zeros(shape=(self.replicas,self.steps))
-        hist_A = np.zeros(shape=(self.replicas,self.steps,len(Q_start))) 
+        hist_A  = np.zeros(shape=(self.replicas,self.steps,len(Q_start))) 
         Actions = self.create_actions(self.bandits)
         for rep in tqdm(range(self.replicas)):
             R = 0
@@ -119,10 +119,10 @@ class AverageMethodStationary():
                 a  = self.eps_greedy(Q,Actions)
                 hist_A[rep,n,a] += 1
                 R = bandits[a].play()
-                hist_R[rep,n] = R
+                hist_R[rep,n]  = R
                 hist_Ra[rep,n] = bandits[a].play()
                 N[a] +=1
-                tmp = Q[a] + float((R-Q[a])/N[a])
+                tmp  = Q[a] + float((R-Q[a])/N[a])
                 Q[a] = tmp
         return hist_R, hist_Ra, hist_A
 
@@ -143,7 +143,7 @@ if __name__=='__main__':
     args = parser.parse_args()
     replicas = int(args.replicas)
     steps    = int(args.steps)
-    epsmax      = float(args.epsmax) 
+    epsmax   = float(args.epsmax) 
 
     bandits = [
         GaussianBandit(1.0,0.1,'a'),
@@ -160,10 +160,10 @@ if __name__=='__main__':
         leg = []
         for eps in np.arange(0,epsmax,0.05):
             method = AverageMethodStationary(
-                eps=eps,
-                replicas=replicas,
-                steps=steps,
-                bandits=bandits)
+                eps         = eps,
+                replicas    = replicas,
+                steps       = steps,
+                bandits     = bandits)
 
             Q_start = np.array([0.0 for _ in range(0,len(bandits))]) #Optimism
             R,Ra,A = method.optimize(Q_start)
@@ -171,17 +171,18 @@ if __name__=='__main__':
             print('Optimal action "h": {}%'.format(100*A_mean[-1,-1]))
             plt.plot(np.mean(Ra,axis=0))
             leg.append(str(eps))
+            print("#"*20)
         plt.legend(leg)
         plt.show()
     else :
         leg = []
         for eps in np.arange(0,epsmax,0.05):
             method = AverageMethodNotStationary(
-                eps=eps,
-                alpha=0.5, 
-                replicas=replicas,
-                steps=steps,
-                bandits=bandits)
+                eps         = eps,
+                alpha       = 0.5, 
+                replicas    = replicas,
+                steps       = steps,
+                bandits     = bandits)
 
             Q_start = np.array([0.0 for _ in range(0,len(bandits))]) #Optimism
             R,Ra,A = method.optimize(Q_start)
@@ -189,6 +190,7 @@ if __name__=='__main__':
             print('Optimal action "h": {}%'.format(100*A_mean[-1,-1]))
             plt.plot(np.mean(Ra,axis=0))
             leg.append(str(eps))
+            print("#"*20)
         plt.legend(leg)
         plt.show()
     
