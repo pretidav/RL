@@ -86,7 +86,7 @@ class grid():
 
 def policy_iteration_method(grid,gamma):
     def policy_evaluation():
-        epsilon = 0.000000001
+        epsilon = 0.0000000001
         counter = 0
         while True:
             delta = 0.0
@@ -123,13 +123,46 @@ def policy_iteration_method(grid,gamma):
     grid.print_value_function()
 
 
+def value_iteration_method(grid,gamma):
+    def policy_evaluation():
+        epsilon = 0.0000000001
+        counter = 0
+        while True:
+            delta = 0.0
+            counter += 1
+            for i in range(Lx):
+                for j in range(Ly):
+                    Vs = grid.V[(i,j)] 
+                    tmp = []
+                    for a in grid.actions:
+                        tmp.append(grid.p[(i,j)][a]*(grid.reward[grid.move(a,(i,j))] + gamma*grid.V[grid.move(a,(i,j))]))
+                    grid.V[(i,j)] = max(tmp)
+                    delta = max(delta,np.abs(Vs - grid.V[(i,j)]))   
+            print('[-] Evaluation swipe: {}'.format(counter))
+            if delta < epsilon:
+                print('[+] Policy evaluated')
+                break
+
+
+    policy_evaluation()
+    #policy improvement
+    print('[+] Policy Improved')
+    for i in range(Lx):
+        for j in range(Ly):
+            old_a = grid.policy[(i,j)]
+            Qs = [grid.p[(i,j)][a]*(grid.reward[grid.move(a,(i,j))] + gamma*grid.V[grid.move(a,(i,j))]) for a in grid.actions]
+            grid.policy[(i,j)] = [grid.actions[i] for i in np.flatnonzero(Qs==np.max(Qs))]   
+
+    print('[+] Optimal Policy:')
+    print(grid.policy)
+    grid.print_value_function()
+
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--Lx', help = "Lx", default=4)
     parser.add_argument('--Ly', help = "Ly", default=10)
     parser.add_argument('--gamma', help = "discount", default=1)
-    parser.add_argument('--count', help = "discount", default=1)
-    
+    parser.add_argument('--method', help = "method", default = 'policy_iteration')
     args = parser.parse_args()
     
     Lx = int(args.Lx)
@@ -137,5 +170,8 @@ if __name__=='__main__':
     gamma = float(args.gamma)
 
     grid = grid([Lx,Ly])
-    policy_iteration_method(grid,gamma)
+    if args.method == 'policy_iteration':
+        policy_iteration_method(grid,gamma)
+    elif args.method == 'value_iteration':
+        value_iteration_method(grid,gamma)
     
