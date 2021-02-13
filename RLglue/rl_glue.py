@@ -211,3 +211,29 @@ class RLGlue:
 
         """
         return self.num_episodes
+
+
+    def plot_opt_policy(self):
+        def map_actions(action):
+            if action==0:
+                return '^'
+            elif action==1:
+                return '>'
+            elif action==2:
+                return 'v'
+            elif action==3:
+                return '<'
+
+        Lx, Ly = self.environment.maze_dim[0],self.environment.maze_dim[1] 
+        print('-'*((2*Lx)+3))
+        for x in range(Lx):
+            s = '|'
+            for y in range(Ly):
+                if self.environment.is_obstacle(x,y):
+                    s+=' x'
+                elif [x,y] in self.environment.end_state:
+                    s+=' $'
+                else:
+                    s+=' '+ map_actions(self.agent.argmax(self.agent.q_values[self.environment.get_observation([x,y])]))
+            print(s+' |')
+        print('-'*((2*Lx)+3))
