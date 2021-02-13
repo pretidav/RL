@@ -28,3 +28,22 @@ this is the optimal value function:
 
 While the optimal policy reads: 
 {(0, 0): ['U', 'L'], (0, 1): ['U'], (0, 2): ['U'], (0, 3): ['U'], (0, 4): ['U'], (1, 0): ['L'], (1, 1): ['U', 'L'], (1, 2): ['U'], (1, 3): ['U'], (1, 4): ['R'], (2, 0): ['L'], (2, 1): ['L'], (2, 2): ['U', 'L'], (2, 3): ['R'], (2, 4): ['R'], (3, 0): ['L'], (3, 1): ['L'], (3, 2): ['D'], (3, 3): ['D', 'R'], (3, 4): ['R'], (4, 0): ['L'], (4, 1): ['D'], (4, 2): ['D'], (4, 3): ['D'], (4, 4): ['D', 'R']}
+
+## Sampling Methods
+
+python mc_policy_evaluation.py
+
+This algorithm implement a Monte Carlo (MC) Exploring Start (ES) algorithm for state-value function estimation and eps-greedy policy improvement. Environment and Agent are managed by the RLglue api. In this implementation the starting state is sampled randomly since we want to estimate the optimal policy in each state. 
+
+---------------
+| v v v < < < |
+| v < < < < < |
+| v x x x x x |
+| > > > v v < |
+| ^ > > > v v |
+| ^ ^ > > $ < |
+---------------
+
+Legenda: 
+$: target 
+^v<>: actions under the estimated optimal policy in each point.  
