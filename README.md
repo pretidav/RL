@@ -1,5 +1,5 @@
 # Library of RL algorithms
-This is a compendium of Reinforcement Learning algorithm for educational purposes. 
+This is a compendium of Reinforcement Learning algorithm for educational purposes.  
 ## k-armed Bandit
 python bandit/bandit.py --replicas=1000 --steps=500 --eps=0.20 --method='ucb','stationary','nonstationary' (chose 1)
 
@@ -35,15 +35,15 @@ python mc_policy_evaluation.py
 
 This algorithm implement a Monte Carlo (MC) Exploring Start (ES) algorithm for state-value function estimation and eps-greedy policy improvement. Environment and Agent are managed by the RLglue api. In this implementation the starting state is sampled randomly since we want to estimate the optimal policy in each state. 
 
----------------
-| v v v < < < |
-| v < < < < < |
-| v x x x x x |
-| > > > v v < |
-| ^ > > > v v |
-| ^ ^ > > $ < |
----------------
+---------------  
+| v v v < < < |  
+| v < < < < < |  
+| v x x x x x |  
+| > > > v v < |  
+| ^ > > > v v |  
+| ^ ^ > > $ < |  
+---------------  
 
-Legenda: 
-$: target 
-^v<>: actions under the estimated optimal policy in each point.  
+Legenda:   
+$: target   
+^v<>: actions under the estimated optimal policy in each point.    
