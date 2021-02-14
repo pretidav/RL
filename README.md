@@ -34,9 +34,11 @@ While the optimal policy reads:
 
 ## Sampling Methods
 
-python mc_policy_evaluation.py
+python MC_ES.py
+or 
+python MC_esoft.py
 
-This algorithm implement a Monte Carlo (MC) Exploring Start (ES) algorithm for state-value function estimation and eps-greedy policy improvement. Environment and Agent are managed by the RLglue api. In this implementation the starting state is sampled randomly since we want to estimate the optimal policy in each state. 
+This algorithm implement a Monte Carlo (MC) Exploring Start (ES) or Epsilon-Soft (esoft) algorithm for state-value function estimation and eps-greedy policy improvement. Environment and Agent are managed by the RLglue api. In this implementation the starting state is sampled randomly since we want to estimate the optimal policy in each state. 
 
 |<!-- -->|<!-- -->|<!-- -->|<!-- -->|<!-- -->|<!-- -->|    
 |--------|--------|--------|--------|--------|--------|  

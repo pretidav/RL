@@ -48,8 +48,8 @@ class MazeEnvironment(BaseEnvironment):
             for y in range(Ly):
                 if self.is_obstacle(x,y):
                     s+=' x'
-                elif self.start_state==[x,y]:
-                    s+=' @'
+                #elif self.start_state==[x,y]:
+                #    s+=' @'
                 elif [x,y] in self.end_state:
                     s+=' $'
                 else:
