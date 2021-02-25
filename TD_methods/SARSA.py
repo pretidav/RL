@@ -10,7 +10,7 @@ from env.maze2D import MazeEnvironment
 import numpy as np
 from tqdm import tqdm
 
-class TD0agent(BaseAgent):
+class SARSAagent(BaseAgent):
     def agent_init(self, agent_info):
         self.num_states  = agent_info["num_states"]
         self.num_actions = agent_info["num_actions"]
@@ -22,16 +22,14 @@ class TD0agent(BaseAgent):
         self.past_action = -1
         self.past_state = -1
         self.model = {} 
+        self.alpha = agent_info["alpha"]
 
     def describe(self):
         print('Agent: number of states  = {}'.format(self.num_states))
         print('Agent: number of actions = {}'.format(self.num_actions))
         print('Agent: discount factor   = {}'.format(self.gamma))
         print('Agent: epsilon           = {}'.format(self.epsilon))
-        
-    
-    def init_random_q(self):
-        self.q_values = self.rand_generator.rand(self.num_states, self.num_actions) 
+        print('Agent: alpha             = {}'.format(self.alpha))
 
     def update_model(self, past_state, past_action, state, reward):
         if past_state in self.model:
@@ -64,17 +62,19 @@ class TD0agent(BaseAgent):
       
     def agent_start(self, state):
         self.past_state = state
-        self.past_action = self.choose_action_egreedy(state)  #Random Starting Exploration (ignore policy)
+        self.past_action = self.choose_action_egreedy(state) 
         return self.past_action
 
     def agent_step(self, reward, state):  
         self.update_model(self.past_state, self.past_action, state, reward)
-        self.past_action = self.choose_action_egreedy(state)
+        action = self.choose_action_egreedy(state)
+        self.q_values[self.past_state,self.past_action]=self.q_values[self.past_state,self.past_action] + self.alpha*(reward + self.gamma*self.q_values[state,action] - self.q_values[self.past_state,self.past_action])
+        self.past_action = action
         self.past_state = state
-        
         return self.past_action
 
     def agent_end(self, reward):
+        self.q_values[self.past_state,self.past_action]=self.q_values[self.past_state,self.past_action] + self.alpha*(reward - self.q_values[self.past_state,self.past_action])
         self.update_model(self.past_state, self.past_action, -1, reward)
         
 
@@ -89,18 +89,18 @@ if __name__=='__main__':
     agent_info = {
         "num_states"  : np.prod(env_info["shape"]),   
         "num_actions" : len(env_info["shape"])**2,
-        "discount": 0.85,
-        "epsilon": 0.1}
+        "discount": 0.95,
+        "epsilon": 0.1,
+        "alpha": 0.2}
     
     rl_glue = RLGlue(
         env_class = MazeEnvironment, 
-        agent_class = MCagent
+        agent_class = SARSAagent
         )
 
     rl_glue.rl_init(agent_info, env_info)
     rl_glue.environment.plot()
     rl_glue.environment.describe()
-    rl_glue.agent.init_random_q()
     rl_glue.agent.describe()
 
     EPISODES = 1000
@@ -119,9 +119,5 @@ if __name__=='__main__':
             if n_step > MAX_STEPS:
                 update=False
                 break
-            else :
-                update = True
-        if update==True :                  
-            rl_glue.agent.estimate_q()
         tot_steps.append(n_step)
     rl_glue.plot_opt_policy()
