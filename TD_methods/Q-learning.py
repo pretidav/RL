@@ -6,7 +6,7 @@ sys.path.append(BASE_PATH)
 
 from RLglue.rl_glue import RLGlue
 from RLglue.agent import BaseAgent
-from env.maze2D import MazeEnvironment
+from env.maze2D_windy import MazeEnvironmentWindy as MazeEnvironment
 import numpy as np
 from tqdm import tqdm
 
@@ -84,7 +84,8 @@ if __name__=='__main__':
         "shape": [6,6],
         "start": [0,5],
         "end"  : [[5,4],[5,5]],
-        "obstacles":[[1,1],[1,2],[1,3],[1,4],[1,5]]}
+        "wind":[[1,1],[1,2],[1,3],[1,4],[1,5]],
+        "obstacles": []}
 
     agent_info = {
         "num_states"  : np.prod(env_info["shape"]),   

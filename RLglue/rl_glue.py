@@ -237,3 +237,20 @@ class RLGlue:
                     s+=' '+ map_actions(self.agent.argmax(self.agent.q_values[self.environment.get_observation([x,y])]))
             print(s+' |')
         print('-'*((2*Lx)+3))
+
+"""
+    def plot_shortest_path(self):
+        Lx, Ly = self.environment.maze_dim[0],self.environment.maze_dim[1] 
+        print('-'*((2*Lx)+3))
+        for x in range(Lx):
+            s = '|'
+            for y in range(Ly):
+                if self.environment.is_obstacle(x,y):
+                    s+=' x'
+                elif [x,y] in self.environment.end_state:
+                    s+=' $'
+                else:
+                    s+=' '+ map_actions(self.agent.argmax(self.agent.q_values[self.environment.get_observation([x,y])]))
+            print(s+' |')
+        print('-'*((2*Lx)+3))
+"""
