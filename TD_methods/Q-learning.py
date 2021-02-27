@@ -9,6 +9,7 @@ from RLglue.agent import BaseAgent
 from env.maze2D import MazeEnvironmentWindy as MazeEnvironment
 import numpy as np
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 class Qagent(BaseAgent):
     def agent_init(self, agent_info):
@@ -82,9 +83,9 @@ if __name__=='__main__':
   
     env_info = { 
         "shape": [6,6],
-        "start": [0,5],
-        "end"  : [[5,4],[5,5]],
-        "wind":[[1,1],[1,2],[1,3],[1,4],[1,5]],
+        "start": [0,0],
+        "end"  : [[0,5]],
+        "wind":[[0,2],[1,2],[2,2],[3,2],[4,2],[5,2]],
         "obstacles": []}
 
     agent_info = {
@@ -99,26 +100,62 @@ if __name__=='__main__':
         agent_class = Qagent
         )
 
+
+    EPISODES  = 300
+    REPLICAS  = 100
+    MAX_STEPS = 5000
+
+    tot_steps = np.zeros((REPLICAS,EPISODES))
+    cum_reward_all = np.zeros((REPLICAS,EPISODES))
+    
     rl_glue.rl_init(agent_info, env_info)
     rl_glue.environment.plot()
     rl_glue.environment.describe()
     rl_glue.agent.describe()
-
-    EPISODES = 1000
-    MAX_STEPS = 1000
-    tot_steps = []
-    for n in tqdm(range(EPISODES)): 
-        n_step = 0
-        rl_glue.environment.env_start()
-        rl_glue.rl_start()
-        is_terminal = False               
-        converged = False
-        update = False
-        while not is_terminal:
-            n_step +=1
-            reward, _, action, is_terminal = rl_glue.rl_step()
-            if n_step > MAX_STEPS:
-                update=False
-                break
-        tot_steps.append(n_step)
+    
+    for r in tqdm(range(REPLICAS)):
+        rl_glue = RLGlue(
+            env_class = MazeEnvironment, 
+            agent_class = Qagent
+            )
+        rl_glue.rl_init(agent_info, env_info)
+        cum_reward = 0
+        for n in range(EPISODES):
+            n_step = 0
+            rl_glue.rl_start()
+            is_terminal = False               
+            converged = False
+            update = False
+            while not is_terminal:
+                n_step +=1
+                reward, _, action, is_terminal = rl_glue.rl_step()
+                cum_reward += reward
+                cum_reward_all[r][n] = cum_reward
+                if n_step > MAX_STEPS:
+                    update=False
+                    break
+                else: 
+                    update=True
+                
+            if update:
+                tot_steps[r,n] = n_step
+            
+    #from last experiment :
     rl_glue.plot_opt_policy()
+    path, ll = rl_glue.get_shortest_path()
+    rl_glue.print_shortest_path(path)
+
+    fig = plt.figure()
+    plt.plot(np.mean(tot_steps,axis=0))
+    plt.legend(['Q-learning'])
+    plt.xlabel('episodes')
+    plt.ylabel('shortest path lenght')
+    plt.axhline(y=7, linestyle='--', color='grey', alpha=0.4)
+    plt.savefig('../fig/Q-learning.png')
+
+
+    fig = plt.figure()
+    plt.plot(np.mean(cum_reward_all, axis=0), label='Q-Learning')
+    plt.xlabel('episodes')
+    plt.ylabel('Cumulative Reward')
+    plt.savefig('../fig/Q-learning-cum-rew.png')
