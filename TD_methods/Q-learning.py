@@ -6,7 +6,7 @@ sys.path.append(BASE_PATH)
 
 from RLglue.rl_glue import RLGlue
 from RLglue.agent import BaseAgent
-from env.maze2D_windy import MazeEnvironmentWindy as MazeEnvironment
+from env.maze2D import MazeEnvironmentWindy as MazeEnvironment
 import numpy as np
 from tqdm import tqdm
 
