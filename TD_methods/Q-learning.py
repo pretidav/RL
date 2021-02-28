@@ -6,7 +6,7 @@ sys.path.append(BASE_PATH)
 
 from RLglue.rl_glue import RLGlue
 from RLglue.agent import BaseAgent
-from env.maze2D import MazeEnvironmentWindy as MazeEnvironment
+from env.maze2D import MazeEnvironmentLava as MazeEnvironment
 import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -86,7 +86,8 @@ if __name__=='__main__':
         "start": [0,0],
         "end"  : [[0,5]],
         "wind":[[0,2],[1,2],[2,2],[3,2],[4,2],[5,2]],
-        "obstacles": []}
+        "obstacles": [],
+        "lava":[[3,3],[3,4]]}
 
     agent_info = {
         "num_states"  : np.prod(env_info["shape"]),   
@@ -102,7 +103,7 @@ if __name__=='__main__':
 
 
     EPISODES  = 300
-    REPLICAS  = 100
+    REPLICAS  = 10
     MAX_STEPS = 5000
 
     tot_steps = np.zeros((REPLICAS,EPISODES))
