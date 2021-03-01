@@ -348,14 +348,19 @@ class MazeEnvironmentLava(BaseEnvironment):
         self.wind = env_info["wind"] #upward ^ +1 
         self.lava = env_info["lava"] #reward -10  
         self.reward_obs_term = [0.0, None, False]
+        self.change_at_n = env_info["change_time"]
+        self.timesteps = 0
+
 
     def describe(self):
-        print('Maze - volume = {}'.format(self.maze_dim))
-        print('Maze - Wall   = {}'.format(self.obstacles))
-        print('Maze - Start  = {}'.format(self.start_state))
-        print('Maze - End    = {}'.format(self.end_state))
-        print('Maze - Wind   = {}'.format(self.wind))
-        print('Maze - Lava   = {}'.format(self.lava))
+        print('Maze - volume   = {}'.format(self.maze_dim))
+        print('Maze - Wall     = {}'.format(self.obstacles))
+        print('Maze - Start    = {}'.format(self.start_state))
+        print('Maze - End      = {}'.format(self.end_state))
+        print('Maze - Wind     = {}'.format(self.wind))
+        print('Maze - Lava     = {}'.format(self.lava))
+        print('Maze - change t = {}'.format(self.change_at_n))
+        
 
     
     def plot(self): 
@@ -432,6 +437,10 @@ class MazeEnvironmentLava(BaseEnvironment):
             (float, state, Boolean): a tuple of the reward, state observation,
                 and boolean indicating if it's terminal.
         """
+
+        self.timesteps += 1
+        if self.timesteps == self.change_at_n:
+            self.obstacles = self.obstacles[:-1]  #remove last obstacle
 
         reward = 0.0
         is_terminal = False

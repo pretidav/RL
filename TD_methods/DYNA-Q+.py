@@ -101,11 +101,12 @@ if __name__=='__main__':
   
     env_info = { 
         "shape": [6,6],
-        "start": [0,0],
-        "end"  : [[0,5]],
-        "wind":[[0,2],[1,2],[2,2],[3,2],[4,2],[5,2]],
-        "obstacles": [],
-        "lava":[[3,3],[3,4]]}
+        "start": [3,0],
+        "end"  : [[3,5]],
+        "wind":[],
+        "obstacles": [[1,3],[2,3],[4,3],[3,3]],
+        "lava":[[5,3],[1,3]],
+        "change_time": 900}
 
     agent_info = {
         "num_states"  : np.prod(env_info["shape"]),   
@@ -122,8 +123,8 @@ if __name__=='__main__':
         )
 
 
-    EPISODES  = 300
-    REPLICAS  = 10
+    EPISODES  = 1000
+    REPLICAS  = 50
     MAX_STEPS = 5000
 
     tot_steps = np.zeros((REPLICAS,EPISODES))
@@ -177,6 +178,7 @@ if __name__=='__main__':
 
     fig = plt.figure()
     plt.plot(np.mean(cum_reward_all, axis=0), label='Dyna-Q+')
+    plt.axvline(x=env_info["change_time"], linestyle='--', color='grey', alpha=0.4)
     plt.xlabel('episodes')
     plt.ylabel('Cumulative Reward')
     plt.savefig('../fig/Dyna-Q+-cum-rew.png')
