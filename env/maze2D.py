@@ -30,11 +30,11 @@ class MazeEnvironment(BaseEnvironment):
         self.start_state = env_info["start"]
         self.end_state = env_info["end"]
         self.current_state = [None for _ in range(len(self.maze_dim))]
-        self.obstacles = env_info["obstacles"]
-        self.wind = env_info["wind"] #upward ^ +1 
-        self.lava = env_info["lava"] #reward -10  
+        self.obstacles = env_info.get("obstacles",[])
+        self.wind = env_info.get("wind",[]) #upward ^ +1 
+        self.lava = env_info.get("lava",[]) #reward -10  
         self.reward_obs_term = [0.0, None, False]
-        self.change_at_n = env_info["change_time"]
+        self.change_at_n = env_info.get("change_time",9999999999)
         self.timesteps = 0
 
 
