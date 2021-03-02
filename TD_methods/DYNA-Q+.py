@@ -98,7 +98,7 @@ class DynaQplus(BaseAgent):
         self.planning_step()
 
 if __name__=='__main__':
-  
+
     env_info = { 
         "shape": [6,6],
         "start": [3,0],
@@ -106,16 +106,16 @@ if __name__=='__main__':
         "wind":[],
         "obstacles": [[1,3],[2,3],[4,3],[3,3]],
         "lava":[[5,3],[1,3]],
-        "change_time": 900}
+        "change_time": 5000}
 
     agent_info = {
         "num_states"  : np.prod(env_info["shape"]),   
         "num_actions" : len(env_info["shape"])**2,
         "discount": 0.95,
         "epsilon": 0.1,
-        "alpha": 0.2,
-        "planning_steps": 20,
-        "kappa": 0.0005}
+        "alpha": 0.3,
+        "planning_steps": 40,
+        "kappa": 0.5}
     
     rl_glue = RLGlue(
         env_class = MazeEnvironment, 
@@ -123,13 +123,13 @@ if __name__=='__main__':
         )
 
 
-    EPISODES  = 1000
+    EPISODES  = 300
     REPLICAS  = 50
-    MAX_STEPS = 5000
+    MAX_STEPS = 10000
 
     tot_steps = np.zeros((REPLICAS,EPISODES))
-    cum_reward_all = np.zeros((REPLICAS,EPISODES))
-    
+    log_data = {}
+
     rl_glue.rl_init(agent_info, env_info)
     rl_glue.environment.plot()
     rl_glue.environment.describe()
@@ -151,8 +151,6 @@ if __name__=='__main__':
             while not is_terminal:
                 n_step +=1
                 reward, _, action, is_terminal = rl_glue.rl_step()
-                cum_reward += reward
-                cum_reward_all[r][n] = cum_reward
                 if n_step > MAX_STEPS:
                     update=False
                     break
@@ -174,11 +172,35 @@ if __name__=='__main__':
     plt.ylabel('shortest path lenght')
     plt.axhline(y=7, linestyle='--', color='grey', alpha=0.4)
     plt.savefig('../fig/Dyna-Q+.png')
+    log_data["tot_steps"]=tot_steps
+    log_data["change_t"]=env_info["change_time"]
+
+    #NOW FOR ANOTHER PLOT
+    cum_reward_all = np.zeros((REPLICAS, MAX_STEPS))   # For saving the cumulative reward
+    for run in tqdm(range(REPLICAS)):
+        rl_glue = RLGlue(
+            env_class = MazeEnvironment, 
+            agent_class = DynaQplus
+            )        
+        rl_glue.rl_init(agent_info, env_info) # We pass RLGlue what it needs to initialize the agent and environment
+        num_steps = 0
+        cum_reward = 0
+        while num_steps < MAX_STEPS-1 :
+            state, _ = rl_glue.rl_start()  # We start the experiment. We'll be collecting the 
+            is_terminal = False            # state-visitation counts to visiualize the learned policy
+            while not is_terminal and num_steps < MAX_STEPS-1 :
+                reward, state, action, is_terminal = rl_glue.rl_step()  
+                num_steps += 1
+                cum_reward += reward
+                cum_reward_all[run][num_steps] = cum_reward
 
 
     fig = plt.figure()
     plt.plot(np.mean(cum_reward_all, axis=0), label='Dyna-Q+')
     plt.axvline(x=env_info["change_time"], linestyle='--', color='grey', alpha=0.4)
-    plt.xlabel('episodes')
+    plt.xlabel('time step')
     plt.ylabel('Cumulative Reward')
     plt.savefig('../fig/Dyna-Q+-cum-rew.png')
+    log_data['cum_reward_all'] = cum_reward_all
+
+    np.save("results/" + 'DynaQ+', log_data)
