@@ -112,7 +112,10 @@ if __name__=='__main__':
         "shape": [6,6],
         "start": [0,5],
         "end"  : [[5,4],[5,5]],
-        "obstacles":[[1,1],[1,2],[1,3],[1,4],[1,5]]}
+        "obstacles":[[1,1],[1,2],[1,3],[1,4],[1,5]],
+        "wind": [],
+        "lava": [],
+        "change_time":9999999}
 
     agent_info = {
         "num_states"  : np.prod(env_info["shape"]),   
