@@ -3,7 +3,6 @@
 
 from __future__ import print_function
 
-
 class RLGlue:
     """RLGlue class
 
@@ -235,5 +234,34 @@ class RLGlue:
                     s+=' $'
                 else:
                     s+=' '+ map_actions(self.agent.argmax(self.agent.q_values[self.environment.get_observation([x,y])]))
+            print(s+' |')
+        print('-'*((2*Lx)+3))
+
+    def get_shortest_path(self):
+        visited = []
+        sx, sy = self.environment.start_state 
+        self.environment.current_state=self.environment.start_state
+        visited.append(self.environment.current_state)
+        is_terminal=False
+        while not is_terminal:
+            a = self.agent.argmax(self.agent.q_values[self.environment.get_observation(self.environment.current_state)])
+            [_, _, is_terminal] = self.environment.env_step(a)
+            visited.append(self.environment.current_state)
+        return visited, len(visited)
+
+    def print_shortest_path(self,path):
+        Lx, Ly = self.environment.maze_dim[0],self.environment.maze_dim[1]     
+        print('-'*((2*Lx)+3))
+        for x in range(Lx):
+            s = '|'
+            for y in range(Ly):
+                if self.environment.is_obstacle(x,y):
+                    s+=' x'
+                elif [x,y] in self.environment.end_state:
+                    s+=' $'
+                elif [x,y] in path:
+                    s+=' #'
+                else :
+                    s+=' o'
             print(s+' |')
         print('-'*((2*Lx)+3))
