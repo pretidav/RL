@@ -56,5 +56,51 @@ $: target
 ## Temporal Difference (tabular) Methods 
 Sarsa, Q-learning, Dyna-Q and DynaQ+. 
 
+x: obstacle
++: lava (-10 reward)
+@: star
+$: target (+1 reward)
+
+|<!-- -->|<!-- -->|<!-- -->|<!-- -->|<!-- -->|<!-- -->|    
+|--------|--------|--------|--------|--------|--------|  
+| o | o | o | o | o | o |
+| o | o | o | x | o | o |
+| o | o | o | x | o | o |
+| @ | o | o | x | o | $ |
+| o | o | o | x | o | o |
+| o | o | o | + | o | o |
+
+#: optimal path 
+
+|<!-- -->|<!-- -->|<!-- -->|<!-- -->|<!-- -->|<!-- -->|    
+|--------|--------|--------|--------|--------|--------|  
+| o | o | # | # | # | # |
+| o | # | # | x | o | # |
+| o | # | o | x | o | # |
+| @ | # | o | o | o | $ |
+| o | o | o | x | o | o |
+| o | o | o | o | o | o |
+
+with shortcut 
+
+|<!-- -->|<!-- -->|<!-- -->|<!-- -->|<!-- -->|<!-- -->|    
+|--------|--------|--------|--------|--------|--------|  
+| o | o | o | o | o | o |
+| o | o | o | x | o | o |
+| o | o | o | x | o | o |
+| @ | o | o | o | o | $ |
+| o | o | o | x | o | o |
+| o | o | o | + | o | o |
+
+|<!-- -->|<!-- -->|<!-- -->|<!-- -->|<!-- -->|<!-- -->|    
+|--------|--------|--------|--------|--------|--------|  
+| o | o | o | o | o | o |
+| o | o | o | x | o | o |
+| o | o | o | x | o | o |
+| @ | # | # | # | # | $ |
+| o | o | o | x | o | o |
+| o | o | o | + | o | o |
+
 Changing environment comparison
+
 ![alt text](https://github.com/pretidav/RL/raw/main/TD_methods/results/comparison-cum-rew.png)
