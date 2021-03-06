@@ -52,3 +52,9 @@ This algorithm implement a Monte Carlo (MC) Exploring Start (ES) or Epsilon-Soft
 Legenda:   
 $: target   
 ^v<>: actions under the estimated optimal policy in each point.    
+
+## Temporal Difference (tabular) Methods 
+Sarsa, Q-learning, Dyna-Q and DynaQ+. 
+
+Changing environment comparison
+![alt text](https://github.com/pretidav/RL/raw/main/TD_methods/results/comparison-cum-rew.png)
