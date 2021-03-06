@@ -115,7 +115,7 @@ if __name__=='__main__':
         "epsilon": 0.1,
         "alpha": 0.3,
         "planning_steps": 40,
-        "kappa": 0.5}
+        "kappa": 0.9}
     
     rl_glue = RLGlue(
         env_class = MazeEnvironment, 
