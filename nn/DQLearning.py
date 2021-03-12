@@ -105,7 +105,8 @@ if __name__=="__main__":
         Cart Position is more than 2.4 (center of the cart reaches the edge of
         the display).
         Episode length is greater than 200.
-        Solved Requirements:
+    
+    Solved Requirements:
         Considered solved when the average return is greater than or equal to
         195.0 over 100 consecutive trials.
     """
