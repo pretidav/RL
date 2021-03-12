@@ -16,10 +16,10 @@ class DeepQAgent():
         self._action_size = enviroment.action_space.n
         self._optimizer = optimizer
         
-        self.experience_replay = deque(maxlen=4000)
+        self.experience_replay = deque(maxlen=40000)
 
         # Initialize discount and exploration rate
-        self.gamma = 0.8
+        self.gamma = 0.999
         self.epsilon = 0.1
 
         self.rand_generator = np.random.RandomState() 
@@ -33,10 +33,9 @@ class DeepQAgent():
     
     def _build_compile_model(self):
         inp = tf.keras.layers.Input(shape=(self._state_size,))
-        d1 = tf.keras.layers.Dense(24, activation='relu')(inp)
-        dp1 = tf.keras.layers.Dropout(0.2)(d1)
-        d3 = tf.keras.layers.Dense(24, activation='relu')(dp1)
-        out = tf.keras.layers.Dense(self._action_size, activation='linear')(d3)
+        d1 = tf.keras.layers.Dense(50, activation='relu')(inp)
+        d2 = tf.keras.layers.Dense(24, activation='relu')(d1)
+        out = tf.keras.layers.Dense(self._action_size, activation='linear')(d2)
         model = tf.keras.Model(inputs=inp, outputs=out)
         model.compile(loss='mse', optimizer=self._optimizer)
         return model
@@ -74,12 +73,27 @@ class DeepQAgent():
                 t = self.target_network.predict(next_state)
                 target[0][action] = reward + self.gamma * np.amax(t)
             
-            self.q_network.fit(state, target, epochs=1, verbose=0)
+        self.q_network.fit(state, target, epochs=1, verbose=0)
+
+    def parallel_retrain(self,batch_size):
+        # inspired by 
+        # https://github.com/Ahmkel/Deep-Learning/blob/master/Reinforcement-Learning/Cart%20Pole%20-%20Deep%20Q-Network%20with%20experience%20replay.ipynb
+        
+        minibatch = random.sample(self.experience_replay, batch_size)
+        states = np.vstack([x[0] for x in minibatch])
+        actions = np.array([x[1] for x in minibatch])
+        rewards = np.array([x[2] for x in minibatch])
+        next_states = np.vstack([x[3] for x in minibatch])
+        episodes_done = np.array([x[4] for x in minibatch])
+        target = self.q_network.predict(next_states)
+        target[range(batch_size),actions] = rewards + self.gamma * np.amax(self.target_network.predict(next_states), axis=1) * ~episodes_done
+        self.q_network.fit(states, target, epochs=1, verbose=0, batch_size=batch_size)
+        target = None
 
 
 if __name__=="__main__":
 
-    env = gym.make('CartPole-v0')
+    env = gym.make('CartPole-v1')
     """
     Observation:
         Type: Box(4)
@@ -93,13 +107,29 @@ if __name__=="__main__":
         Num   Action
         0     Push cart to the left
         1     Push cart to the right
+
+
+    Reward:
+        Reward is 1 for every step taken, including the termination step
+
+    Starting State:
+        All observations are assigned a uniform random value in [-0.05..0.05]
+
+    Episode Termination:
+        Pole Angle is more than 12 degrees.
+        Cart Position is more than 2.4 (center of the cart reaches the edge of
+        the display).
+        Episode length is greater than 200.
+
+    Solved Requirements:
+        Considered solved when the average return is greater than or equal to
+        195.0 over 100 consecutive trials.
+            
     """
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
     agent = DeepQAgent(enviroment=env, optimizer=optimizer)
-    batch_size = 32
-    num_of_episodes = 100
-    timesteps_per_episode = 150
-    min_epsilon = 0.005
+    batch_size = 64
+    num_of_episodes = 1000
     agent.q_network.summary()
 
     steps = []
@@ -108,27 +138,29 @@ if __name__=="__main__":
         state = tf.expand_dims(state, axis=0)
         reward = 0
         terminated = False
-    
-        for t in range(timesteps_per_episode):
+        t = 0   
+        agent.epsilon = 1./((i_episode/20) + 5)
+        while True:
             #env.render()
-            action = agent.act(state)   #<- random action
-            next_state, reward, terminated, info = env.step(action)   #<- step given random action
+            t+=1
+            action = agent.act(state)   
+            next_state, reward, terminated, info = env.step(action)   
             next_state = tf.expand_dims(next_state, axis=0)
             agent.store(state, action, reward, next_state, terminated)
             state = next_state   
-            
-            if terminated or t==timesteps_per_episode-1:
+            if terminated:
                 agent.align_target_model()
-                print("Episode {} finished after {} timesteps".format(i_episode,t+1))
                 steps.append(t)
-                #if agent.epsilon>min_epsilon:
-                #    agent.epsilon*=0.99
+                if (i_episode+1)%20==0:
+                    print("Episode {} finished after {} mean timesteps".format(i_episode+1,np.mean(steps[-10:])))
                 break
-        
-                 
-            if len(agent.experience_replay) > batch_size:
-                agent.retrain(batch_size)
 
+            if len(agent.experience_replay) > batch_size:
+                agent.parallel_retrain(batch_size)
+
+        if i_episode>99:
+            if np.mean(steps[-50:])>=150.0:
+                break
         
     plt.plot(steps)
     #plt.show()  
