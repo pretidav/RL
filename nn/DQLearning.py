@@ -108,7 +108,6 @@ if __name__=="__main__":
         0     Push cart to the left
         1     Push cart to the right
 
-
     Reward:
         Reward is 1 for every step taken, including the termination step
 
@@ -120,13 +119,13 @@ if __name__=="__main__":
         Cart Position is more than 2.4 (center of the cart reaches the edge of
         the display).
         Episode length is greater than 200.
-
+    
     Solved Requirements:
         Considered solved when the average return is greater than or equal to
         195.0 over 100 consecutive trials.
-            
     """
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
     agent = DeepQAgent(enviroment=env, optimizer=optimizer)
     batch_size = 64
     num_of_episodes = 1000
