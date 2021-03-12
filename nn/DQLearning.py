@@ -110,7 +110,6 @@ if __name__=="__main__":
         195.0 over 100 consecutive trials.
     """
 
-    """
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
     agent = DeepQAgent(enviroment=env, optimizer=optimizer)
     batch_size = 32
