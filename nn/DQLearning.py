@@ -16,7 +16,7 @@ class DeepQAgent():
         self._action_size = enviroment.action_space.n
         self._optimizer = optimizer
         
-        self.experience_replay = deque(maxlen=40000)
+        self.experience_replay = deque(maxlen=400000)
 
         # Initialize discount and exploration rate
         self.gamma = 0.999
@@ -34,8 +34,7 @@ class DeepQAgent():
     def _build_compile_model(self):
         inp = tf.keras.layers.Input(shape=(self._state_size,))
         d1 = tf.keras.layers.Dense(50, activation='relu')(inp)
-        d2 = tf.keras.layers.Dense(24, activation='relu')(d1)
-        out = tf.keras.layers.Dense(self._action_size, activation='linear')(d2)
+        out = tf.keras.layers.Dense(self._action_size, activation='linear')(d1)
         model = tf.keras.Model(inputs=inp, outputs=out)
         model.compile(loss='mse', optimizer=self._optimizer)
         return model
@@ -73,7 +72,7 @@ class DeepQAgent():
                 t = self.target_network.predict(next_state)
                 target[0][action] = reward + self.gamma * np.amax(t)
             
-        self.q_network.fit(state, target, epochs=1, verbose=0)
+            self.q_network.fit(state, target, epochs=1, verbose=0)
 
     def parallel_retrain(self,batch_size):
         # inspired by 
@@ -125,9 +124,9 @@ if __name__=="__main__":
         195.0 over 100 consecutive trials.
     """
 
-    optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
     agent = DeepQAgent(enviroment=env, optimizer=optimizer)
-    batch_size = 64
+    batch_size = 32
     num_of_episodes = 1000
     agent.q_network.summary()
 
@@ -138,7 +137,7 @@ if __name__=="__main__":
         reward = 0
         terminated = False
         t = 0   
-        agent.epsilon = 1./((i_episode/20) + 5)
+        agent.epsilon = 1./(float(i_episode/100) + 1.)
         while True:
             #env.render()
             t+=1
@@ -151,7 +150,7 @@ if __name__=="__main__":
                 agent.align_target_model()
                 steps.append(t)
                 if (i_episode+1)%20==0:
-                    print("Episode {} finished after {} mean timesteps".format(i_episode+1,np.mean(steps[-10:])))
+                    print("Episode {} finished after {}({}) mean timesteps, eps {}".format(i_episode+1,np.mean(steps[-20:]),np.std(steps[-20:]),agent.epsilon))
                 break
 
             if len(agent.experience_replay) > batch_size:
