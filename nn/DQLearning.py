@@ -19,7 +19,7 @@ class DeepQAgent():
         self.experience_replay = deque(maxlen=400000)
 
         # Initialize discount and exploration rate
-        self.gamma = 0.999
+        self.gamma = 0.99
         self.epsilon = 0.1
 
         self.rand_generator = np.random.RandomState() 
@@ -77,17 +77,17 @@ class DeepQAgent():
     def parallel_retrain(self,batch_size):
         # inspired by 
         # https://github.com/Ahmkel/Deep-Learning/blob/master/Reinforcement-Learning/Cart%20Pole%20-%20Deep%20Q-Network%20with%20experience%20replay.ipynb
-        
+        # see also https://www.youtube.com/watch?v=D795oNqa-Vk
+
         minibatch = random.sample(self.experience_replay, batch_size)
         states = np.vstack([x[0] for x in minibatch])
         actions = np.array([x[1] for x in minibatch])
         rewards = np.array([x[2] for x in minibatch])
         next_states = np.vstack([x[3] for x in minibatch])
-        episodes_done = np.array([x[4] for x in minibatch])
-        target = self.q_network.predict(next_states)
-        target[range(batch_size),actions] = rewards + self.gamma * np.amax(self.target_network.predict(next_states), axis=1) * ~episodes_done
+        episodes_done = np.array([not x[4] for x in minibatch])
+        target = self.q_network.predict(states)
+        target[range(batch_size),actions] = rewards + self.gamma * np.amax(self.target_network.predict(next_states), axis=1) * episodes_done
         self.q_network.fit(states, target, epochs=1, verbose=0, batch_size=batch_size)
-        target = None
 
 
 if __name__=="__main__":
@@ -126,8 +126,8 @@ if __name__=="__main__":
 
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
     agent = DeepQAgent(enviroment=env, optimizer=optimizer)
-    batch_size = 32
-    num_of_episodes = 1000
+    batch_size = 64
+    num_of_episodes = 10000
     agent.q_network.summary()
 
     steps = []
@@ -137,17 +137,23 @@ if __name__=="__main__":
         reward = 0
         terminated = False
         t = 0   
-        agent.epsilon = 1./(float(i_episode/100) + 1.)
+        agent.epsilon = 1./(float(i_episode/100) + 5.)
+        if agent.epsilon<0.1:
+            agent.epsilon=0.1
+            
         while True:
             #env.render()
             t+=1
             action = agent.act(state)   
-            next_state, reward, terminated, info = env.step(action)   
+            next_state, reward, terminated, info = env.step(action)
+            if terminated:
+                reward = -1  #custom punishment    
             next_state = tf.expand_dims(next_state, axis=0)
             agent.store(state, action, reward, next_state, terminated)
             state = next_state   
-            if terminated:
+            if t%5==0:
                 agent.align_target_model()
+            if terminated or t>=200:
                 steps.append(t)
                 if (i_episode+1)%20==0:
                     print("Episode {} finished after {}({}) mean timesteps, eps {}".format(i_episode+1,np.mean(steps[-20:]),np.std(steps[-20:]),agent.epsilon))
@@ -156,11 +162,11 @@ if __name__=="__main__":
             if len(agent.experience_replay) > batch_size:
                 agent.parallel_retrain(batch_size)
 
-        if i_episode>99:
-            if np.mean(steps[-50:])>=150.0:
-                break
-        
-    plt.plot(steps)
-    #plt.show()  
-    agent.q_network.save('./models/qlearning.hdf5',overwrite=True,include_optimizer=False)
-    plt.savefig('./models/qlearning.png')
+        if np.sum(np.array(steps[-100:])>=195.0)==100:
+            print('--- won ---')
+            agent.q_network.save('./models/qlearning.hdf5',overwrite=True,include_optimizer=False)
+            plt.plot(steps)
+            plt.savefig('./models/qlearning.png')
+            break
+          
+    
