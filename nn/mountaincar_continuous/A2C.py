@@ -175,3 +175,9 @@ if __name__=="__main__":
               if (i_episode+1)%1==0:
                 print("Episode {} finished with {} mean reward".format(i_episode+1,episode_reward))
               break
+
+        if won==100:
+            print('--- won ---')
+            agent.actor.model.save('./models/a2c.hdf5',overwrite=True,include_optimizer=False)
+            break
+          
