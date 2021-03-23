@@ -15,7 +15,7 @@ class Actor:
         self.action_bound = action_bound
         self.std_bound = std_bound
         self.model = self.create_model()
-        self.opt = tf.keras.optimizers.Adam(learning_rate=0.001)
+        self.opt = tf.keras.optimizers.Adam(learning_rate=0.002)
 
     def create_model(self):
         
@@ -47,7 +47,7 @@ class Actor:
         #log_policy_pdf = self.log_pdf(mu, std, actions)
         #log_policy_pdf = dist.log_prob(value=actions)
         dist = tfp.distributions.Normal(loc=mu, scale=std)
-        loss_policy = (-dist.log_prob(value=actions) * advantages + 0.001*dist.entropy())
+        loss_policy = (-dist.log_prob(value=actions) * advantages + 0.002*dist.entropy())
         return tf.reduce_sum(loss_policy)
         
     def train(self, states, actions, advantages):
@@ -62,7 +62,7 @@ class Critic:
     def __init__(self, state_dim):
         self.state_dim = state_dim
         self.model = self.create_model()
-        self.opt = tf.keras.optimizers.Adam(learning_rate=0.001)
+        self.opt = tf.keras.optimizers.Adam(learning_rate=0.002)
 
     def create_model(self):
         state_input = tf.keras.layers.Input((self.state_dim,))
@@ -129,6 +129,7 @@ if __name__=="__main__":
     ep = 0 
     won = 0
     num_of_episodes = 1000
+    all_win = []
     for i_episode in tqdm(range(num_of_episodes)):
         state_batch = []
         action_batch = []
@@ -145,8 +146,8 @@ if __name__=="__main__":
 
             next_state, reward, done, _ = env.step(action)
             if done and next_state[0] >= 0.45:
-                reward += 500 
-            reward += (next_state[0]-0.5)
+                reward += 600 
+            reward += (next_state[0]-0.55)
             state = np.reshape(state, [1, agent.state_dim])
             action = np.reshape(action, [1, agent.action_dim])
             next_state = np.reshape(next_state, [1, agent.state_dim])
@@ -181,11 +182,14 @@ if __name__=="__main__":
               if state[0] >= 0.45:
                 won+=1
                 print('won')
+                all_win.append(True)
               if (i_episode+1)%1==0:
                 print("Episode {} finished with {} mean reward".format(i_episode+1,episode_reward))
               break
 
-        if won==50:
+        print('wins {}'.format(np.sum(all_win[-50:])))
+
+        if np.sum(all_win[-50:])==50:
             print('--- won ---')
             agent.actor.model.save('./models/actor.hdf5',overwrite=True,include_optimizer=False)
             agent.critic.model.save('./models/critic.hdf5',overwrite=True,include_optimizer=False)
