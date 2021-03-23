@@ -191,7 +191,7 @@ if __name__=="__main__":
 
         if np.sum(all_win[-50:])==50:
             print('--- won ---')
-            agent.actor.model.save('./models/actor.hdf5',overwrite=True,include_optimizer=False)
-            agent.critic.model.save('./models/critic.hdf5',overwrite=True,include_optimizer=False)
+            agent.actor.model.save('./models/actorA2C.hdf5',overwrite=True,include_optimizer=False)
+            agent.critic.model.save('./models/criticA2C.hdf5',overwrite=True,include_optimizer=False)
             break
           
